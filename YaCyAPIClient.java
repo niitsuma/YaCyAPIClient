@@ -13,33 +13,30 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import java.util.ArrayList;
 
 public class YaCyAPIClient {
-	private static String YaCy_URL = "localhost:8091";
+	private static String YaCy_URL = "localhost:8090";
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		System.out.println(
-				queryExactSentenceNumFoundStr("This is a")
+				queryExactSentenceToNumFoundStr("This is a")
 				);
 		System.out.println(
-				queryExactSentenceNumFound("This is a")
+				queryExactSentenceToNumFound("This is a")
 				);
+		ArrayList<String> summaryStringList =
+				queryExactSentenceStartEndToSummaryStringList("This is a",0,3);
+		System.out.println(summaryStringList.get(0));
+				
 	}
-	public static String queryExactSentenceNumFoundStr(String aQuery)
-
+	
+	public static Document queryURLToDocument(URL url)
 	{
-		String numFoundStr = null;
-		aQuery = aQuery.replaceAll(" ", "%20");
 		Document doc = null;
-		String url_str="http://" 
-				+ YaCy_URL 
-				+ "/solr/collection1/select?q=%22"
-				+ aQuery 
-				+ "%22&defType=edismax&start=0&rows=3";
-
 		try {
-			URL url = new URL(url_str);	
+			//URL url = new URL(url_str);	
 			HttpURLConnection urlConn = (HttpURLConnection) url.openConnection();
 			urlConn.setRequestMethod("GET");
 			//urlConn.setInstanceFollowRedirects(false);
@@ -56,26 +53,94 @@ public class YaCyAPIClient {
 			e.printStackTrace();
 		} catch (ParserConfigurationException e) {
 			e.printStackTrace();
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
+		//} catch (MalformedURLException e) {
+		//	e.printStackTrace();
 		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return doc;		
+	}
+	public static String queryExactSentenceToNumFoundStr(String aQuery)
+	{
+		String numFoundStr = null;
+		aQuery = aQuery.replaceAll(" ", "%20");
+		Document doc = null;
+		String url_str="http://" 
+				+ YaCy_URL 
+				+ "/solr/collection1/select?q=%22"
+				+ aQuery 
+				+ "%22&defType=edismax&start=0&rows=3";
+		try {
+			URL url = new URL(url_str);	
+			doc=	queryURLToDocument(url);
+		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		}
 		
 		Element root = doc.getDocumentElement();
 		//System.out.println("root name" + root.getTagName());
-		NodeList nodeList = root.getElementsByTagName("result");
-		//System.out.println("num root node list：" + nodeList.getLength());
-		for (int i = 0; i < nodeList.getLength(); i++) {
-			Element element = (Element)nodeList.item(i);
+		NodeList resultList = root.getElementsByTagName("result");
+		//System.out.println("num root node list：" + resultList.getLength());
+		for (int i = 0; i < resultList.getLength(); i++) {
+			Element element = (Element)resultList.item(i);
 			//System.out.println(element.getAttribute("numFound"));
 			numFoundStr=element.getAttribute("numFound");
 		}
 		return numFoundStr;
-		
 	}
 	
-	public static int queryExactSentenceNumFound(String aQuery){
-		return Integer.parseInt(queryExactSentenceNumFoundStr(aQuery));
+	public static int queryExactSentenceToNumFound(String aQuery){
+		return Integer.parseInt(queryExactSentenceToNumFoundStr(aQuery));
 	}
+	
+	public static ArrayList<String> queryExactSentenceStartEndToSummaryStringList(String aQuery,int start, int rows)
+	{
+		ArrayList<String> summaryStringList = new ArrayList<String>();
+		aQuery = aQuery.replaceAll(" ", "%20");
+		Document doc = null;
+		String url_str="http://" 
+				+ YaCy_URL 
+				+ "/solr/collection1/select?q=%22"
+				+ aQuery 
+				+ "%22&defType=edismax&start=" + start + "&rows=" + rows;
+		try {
+			URL url = new URL(url_str);	
+			doc=	queryURLToDocument(url);
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		}		
+		Element root = doc.getDocumentElement();
+		//System.out.println("root name" + root.getTagName());
+		NodeList resultList = root.getElementsByTagName("result");
+		//System.out.println("num root node list：" + resultList.getLength());
+		for (int i = 0; i < resultList.getLength(); i++) {
+			Element resultElement = (Element)resultList.item(i);
+			//System.out.println("resultElement name" + resultElement.getTagName());
+		    //System.out.println(element.getAttribute("numFound"));
+		    //numFoundStr=element.getAttribute("numFound");
+		    NodeList docNodeList = resultElement.getElementsByTagName("doc");
+		    //System.out.println("num doc：" + docNodeList.getLength());
+		    for (int j = 0; j < docNodeList.getLength(); j++) {
+		    	Element docElement = (Element)docNodeList.item(j);
+		    	//System.out.println("docElement name" + docElement.getTagName());
+		    	NodeList strNodeList = docElement.getElementsByTagName("str");
+		    	//System.out.println("num str：" + strNodeList.getLength());
+		    	for (int k	 = 0; k < strNodeList.getLength(); k++) {
+		    		Element strElement = (Element)strNodeList.item(k);
+		    		//System.out.println(strElement.getAttribute("name"));
+		    		//System.out.println(getElementContent(strElement));
+		    		//System.out.println(strElement.getNodeValue());
+		    		if(strElement.getAttribute("name").equals("text_t"))	{
+		    			//System.out.println(strElement.getAttribute("name"));
+		    			//System.out.println(strElement.getFirstChild().getNodeValue());
+		    			summaryStringList.add(strElement.getFirstChild().getNodeValue());
+		    		}
+		    		
+		    	}
+		    }
+		}
+		return summaryStringList;
+	}
+	
+	
 }
