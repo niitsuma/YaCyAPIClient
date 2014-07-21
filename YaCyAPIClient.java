@@ -7,6 +7,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -184,7 +185,7 @@ public class YaCyAPIClient {
 	public static String queryExactSentenceToNumFoundStr(String query){
 		String[] querySplited = query.split(wildcardSeparator);
 		//System.out.println(queryAry.length);
-		//for(String str : queryAry) {System.out.println(str);}		
+		//for(String str : queryAry) {System.out.println(str);}
 		if(querySplited.length > 1 ){
 			int numFund0=Integer.parseInt(
 				queryDocToNumFoundStr(
@@ -197,12 +198,24 @@ public class YaCyAPIClient {
 			Collection<String> summaryStringList = queryExactSentenceEmulateWildcardToSummaryStringList(query,0,rows);			
 			int numFund1=summaryStringList.size();
 			return String.valueOf(numFund0*numFund1/rows);//Approximated ratio
+		/*
+		}else if(Pattern.compile("%22").matcher(query).find()){
+			System.out.println("aleadyReplacedQuery : "+query);
+		    return queryDocToNumFoundStr(
+			     queryURLStrToDocument(
+			       queryStrToURLString(query,-1,-1)));
+		*/
 		}else{		
-			//String numFoundStr = null;
-			query = query.replaceAll(" ", "%20");
-			String queryActual="%22" + query + "%22";
-			return queryDocToNumFoundStr(
-					queryURLStrToDocument(queryStrToURLString(queryActual,-1,-1)));
+		    //String numFoundStr = null;
+		    query = query.replaceAll(" ", "%20");
+		    String queryActual=null;
+		    if(Pattern.compile("%22").matcher(query).find()){
+		    	queryActual=query;
+		    }else{
+		    	queryActual="%22" + query + "%22";
+		    }
+		    return queryDocToNumFoundStr(
+			     queryURLStrToDocument(queryStrToURLString(queryActual,-1,-1)));
 		}	}
 	public static int queryExactSentenceToNumFound(String aQuery){
 		return Integer.parseInt(queryExactSentenceToNumFoundStr(aQuery));}
@@ -212,7 +225,12 @@ public class YaCyAPIClient {
 		if(querySplited.length > 1 ){
 			return queryExactSentenceEmulateWildcardToSummaryStringList(query,start,rows);			
 		}else{
-			String queryActual="%22" +   query.replaceAll(" ", "%20") + "%22" ;		
+			String queryActual=null;
+			if(Pattern.compile("%22").matcher(query).find()){
+				queryActual=query;
+			}else{
+				queryActual="%22" +   query.replaceAll(" ", "%20") + "%22" ;		
+			}
 			Collection<String> summaryStringList 
 			//= queryDocToSummaryStringList(doc);
 			= queryDocToSummaryStringList(

@@ -1,6 +1,5 @@
 package yacyapiclient;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 import junit.framework.TestCase;
@@ -17,6 +16,9 @@ public class YaCyAPIClientTest extends TestCase {
 			System.out.println(
 					YaCyAPIClient.queryExactSentenceToNumFound("This is a")
 					);
+			System.out.println(
+					  YaCyAPIClient.queryExactSentenceToNumFoundStr("%22This%20is%20a%22AND%22That%20is%22")
+						);
 			System.out.println(
 					  YaCyAPIClient.queryExactSentenceToNumFoundStr("This * a pen")
 						);
