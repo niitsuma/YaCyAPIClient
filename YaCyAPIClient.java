@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -15,23 +17,11 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import java.lang.Math.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
-
-
+import com.google.common.base.Predicates;
+import com.google.common.collect.Collections2;
 //import com.google.guava:guava;
 //import java.util.Collections;
-import java.util.Collection;
-import java.util.AbstractCollection.*;  
-
-import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableCollection;
 //import com.google.common.collect.
-import com.google.common.collect.Iterables;
-import com.google.common.base.Predicates;
 //import com.google.common.io.
 
 
@@ -83,7 +73,7 @@ public class YaCyAPIClient {
 		return doc;}
 	
 	public static Document queryURLStrToDocument(String urlStr){
-		//System.out.println(urlStr);
+		System.out.println(urlStr);
 		Document doc = null;
 		try {
 			URL url = new URL(urlStr);	
@@ -164,17 +154,28 @@ public class YaCyAPIClient {
 			String pat=query.replaceAll("\\*", ".*");
 			//System.out.println(pat);
 			String queryActual = queryWildcardSplitedToQueryActual(querySplited);
+			int numFound=Integer.parseInt(queryDocToNumFoundStr(queryURLStrToDocument(queryStrToURLString(queryActual,-1,-1))));
+			if(start > numFound -2 || numFound == 0  ) {return new ArrayList<String>();}
+			rows= Math.min(rows ,  numFound - start -2 );
 			//System.out.println(queryActual);
 			//ArrayList<String> 
-			Collection<String>
-			summaryStringList0 = 
+			Collection<String> summaryStringList0 = 
 				queryDocToSummaryStringList(
 						queryURLStrToDocument(queryStrToURLString(queryActual,start,rows)));
 			//System.out.println(summaryStringList0.size());
-			Collection<String>
-				summaryStringList=
+			Collection<String> summaryStringList =
 					Collections2.filter(summaryStringList0,Predicates.containsPattern(pat));
 			//System.out.println(summaryStringList.size());
+			int start1=start+rows;
+			while(start == 0  &&  summaryStringList.size() < rows && start1 < numFound ){ 
+				Collection<String> summaryStringList1 = 
+						queryDocToSummaryStringList(
+								queryURLStrToDocument(queryStrToURLString(queryActual,start1,rows)));
+				summaryStringList.addAll(				
+						Collections2.filter(summaryStringList1,Predicates.containsPattern(pat)));
+				start1=start1+rows; 
+			}
+
 			return summaryStringList;
 			//for(String item: summaryStringList){System.out.println("element: " + item);}
 		//}
@@ -191,6 +192,7 @@ public class YaCyAPIClient {
 						queryStrToURLString(
 							queryWildcardSplitedToQueryActual(querySplited)
 					,-1,-1))));
+			if(numFund0 == 0) {return String.valueOf(0);}
 			int rows=Math.min(numFund0,queryRowsEmulateWildcard);
 			Collection<String> summaryStringList = queryExactSentenceEmulateWildcardToSummaryStringList(query,0,rows);			
 			int numFund1=summaryStringList.size();
