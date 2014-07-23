@@ -27,7 +27,7 @@ import com.google.common.collect.Collections2;
 
 
 public class YaCyAPIClient {
-	private static String YaCy_URL = "localhost:8090";
+	public static String YaCy_URL = "localhost:8090";
 	private static int queryRowsEmulateWildcard=100;
 	private static String wildcardSeparator=
 		"\\*"

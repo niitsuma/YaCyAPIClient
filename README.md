@@ -8,4 +8,8 @@ plz see example usage of
 
 in 
 
-YaCyAPIClientTest.java
+   YaCyAPIClientTest.java
+
+# Test
+
+tested using YaCy data http://www.suri.cs.okayama-u.ac.jp/~niitsuma/yacy1.72withEngData.zip
